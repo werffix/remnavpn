@@ -1213,48 +1213,7 @@ async def _get_multi_tariff_status(user, texts, db: AsyncSession) -> tuple[str, 
 async def get_main_menu_text(user, texts, db: AsyncSession):
     from app.config import settings
 
-    # Multi-tariff: show summary of all subscriptions
-    if settings.is_multi_tariff_enabled():
-        subscriptions_status, tariff_info_block = await _get_multi_tariff_status(user, texts, db)
-
-        base_text = texts.MAIN_MENU.format(
-            user_name=html.escape(user.full_name or ''),
-            subscription_status=subscriptions_status,
-        )
-
-        if tariff_info_block:
-            action_prompt_text = texts.t('MAIN_MENU_ACTION_PROMPT', 'Выберите действие:')
-            if action_prompt_text in base_text:
-                base_text = base_text.replace(action_prompt_text, f'{tariff_info_block}\n\n{action_prompt_text}')
-    else:
-        # Single-tariff mode: legacy behavior
-        tariff = None
-        is_daily_tariff = False
-        tariff_info_block = ''
-
-        subscription = getattr(user, 'subscription', None)
-        if settings.is_tariffs_mode() and subscription and subscription.tariff_id:
-            try:
-                from app.database.crud.tariff import get_tariff_by_id
-
-                tariff = await get_tariff_by_id(db, subscription.tariff_id)
-                if tariff:
-                    is_daily_tariff = getattr(tariff, 'is_daily', False)
-                    tariff_info_block = f'\n📦 Тариф: {html.escape(tariff.name)}'
-            except Exception as e:
-                logger.debug('Не удалось загрузить тариф для главного меню', error=e)
-
-        base_text = texts.MAIN_MENU.format(
-            user_name=html.escape(user.full_name or ''),
-            subscription_status=_get_subscription_status(user, texts, is_daily_tariff),
-        )
-
-        if tariff_info_block:
-            action_prompt_text = texts.t('MAIN_MENU_ACTION_PROMPT', 'Выберите действие:')
-            if action_prompt_text in base_text:
-                base_text = base_text.replace(action_prompt_text, f'{tariff_info_block}\n\n{action_prompt_text}')
-
-    action_prompt = texts.t('MAIN_MENU_ACTION_PROMPT', 'Выберите действие:')
+    base_text = texts.MAIN_MENU
 
     info_sections: list[str] = []
 
@@ -1283,13 +1242,12 @@ async def get_main_menu_text(user, texts, db: AsyncSession):
     if info_sections:
         extra_block = '\n\n'.join(section for section in info_sections if section)
         if extra_block:
-            base_text = _insert_random_message(base_text, extra_block, action_prompt)
+            base_text = f'{base_text}\n\n{extra_block}'
 
     try:
         random_message = await get_random_active_message(db)
         if random_message:
-            return _insert_random_message(base_text, random_message, action_prompt)
-
+            base_text = f'{base_text}\n\n{random_message}'
     except Exception as e:
         logger.error('Ошибка получения случайного сообщения', error=e)
 
