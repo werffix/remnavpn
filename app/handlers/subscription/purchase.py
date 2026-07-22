@@ -428,7 +428,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
                         tariff_info_lines.append('')
                         tariff_info_lines.append('⏳ Первое списание скоро')
 
-                tariff_info_block = '\n<blockquote expandable>' + '\n'.join(tariff_info_lines) + '</blockquote>'
+                tariff_info_block = '\n' + '\n'.join(tariff_info_lines)
 
         except Exception as e:
             logger.warning('Ошибка получения тарифа', error=e, exc_info=True)
@@ -441,6 +441,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
         message_template = texts.t(
             'SUBSCRIPTION_DAILY_OVERVIEW_TEMPLATE',
             """👤 {full_name}
+🆔 ID: {user_id}
 💰 Баланс: {balance}
 📱 Подписка: {status_emoji} {status_display}{warning}{tariff_info_block}
 
@@ -454,6 +455,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
         message_template = texts.t(
             'SUBSCRIPTION_OVERVIEW_TEMPLATE',
             """👤 {full_name}
+🆔 ID: {user_id}
 💰 Баланс: {balance}
 📱 Подписка: {status_emoji} {status_display}{warning}{tariff_info_block}
 
@@ -476,6 +478,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
 
     message = message_template.format(
         full_name=html.escape(db_user.full_name or ''),
+        user_id=db_user.telegram_id or '',
         balance=settings.format_price(db_user.balance_kopeks),
         status_emoji=status_emoji,
         status_display=status_display,
@@ -509,7 +512,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
         if purchases:
             message += '\n\n' + texts.t(
                 'SUBSCRIPTION_PURCHASED_TRAFFIC_TITLE',
-                '<blockquote>📦 <b>Докупленный трафик:</b>\n',
+                '📦 <b>Докупленный трафик:</b>\n',
             )
 
             for purchase in purchases:
@@ -544,7 +547,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
                 message += f'• {purchase.traffic_gb} ГБ — {time_text}\n'
                 message += f'  {bar} {progress_percent:.0f}% | до {expire_date}\n'
 
-            message += texts.t('SUBSCRIPTION_PURCHASED_TRAFFIC_FOOTER', '</blockquote>')
+            message += texts.t('SUBSCRIPTION_PURCHASED_TRAFFIC_FOOTER', '')
 
     await callback.message.edit_text(
         message,
@@ -4075,6 +4078,30 @@ async def handle_trial_payment_method(callback: types.CallbackQuery, db_user: Us
         await callback.answer('❌ Произошла ошибка при создании платежа. Попробуйте позже.', show_alert=True)
 
 
+@error_handler
+async def handle_traffic_submenu(callback: types.CallbackQuery, db_user: User, db: AsyncSession):
+    from app.keyboards.inline import get_traffic_submenu_keyboard
+
+    await callback.message.edit_text(
+        '📊 <b>Трафик</b>\n\nВыберите действие:',
+        reply_markup=get_traffic_submenu_keyboard(db_user.language),
+        parse_mode='HTML',
+    )
+    await callback.answer()
+
+
+@error_handler
+async def handle_devices_submenu(callback: types.CallbackQuery, db_user: User, db: AsyncSession):
+    from app.keyboards.inline import get_devices_submenu_keyboard
+
+    await callback.message.edit_text(
+        '📱 <b>Устройства</b>\n\nВыберите действие:',
+        reply_markup=get_devices_submenu_keyboard(db_user.language),
+        parse_mode='HTML',
+    )
+    await callback.answer()
+
+
 def register_handlers(dp: Dispatcher):
     update_traffic_prices()
 
@@ -4249,6 +4276,9 @@ def register_handlers(dp: Dispatcher):
     dp.callback_query.register(handle_open_subscription_link, F.data.startswith('open_subscription_link'))
 
     dp.callback_query.register(handle_subscription_settings, F.data == 'subscription_settings')
+
+    dp.callback_query.register(handle_traffic_submenu, F.data == 'subscription_traffic_menu')
+    dp.callback_query.register(handle_devices_submenu, F.data == 'subscription_devices_menu')
 
     dp.callback_query.register(handle_toggle_daily_subscription_pause, F.data == 'toggle_daily_subscription_pause')
 
