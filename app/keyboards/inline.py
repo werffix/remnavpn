@@ -612,6 +612,10 @@ def get_main_menu_keyboard(
 
     keyboard: list[list[InlineKeyboardButton]] = []
 
+    # --- Если подписка не активна — Купить подписку сверху ---
+    if not has_active_subscription:
+        keyboard.append([InlineKeyboardButton(text=texts.MENU_BUY_SUBSCRIPTION, callback_data='menu_buy')])
+
     # --- Ряд 1: Подключиться (во всю ширину) ---
     if has_active_subscription and subscription_is_active:
         connect_mode = settings.CONNECT_BUTTON_MODE
@@ -673,19 +677,6 @@ def get_main_menu_keyboard(
         happ_row = get_happ_download_button_row(texts)
         if happ_row:
             keyboard.append(happ_row)
-
-        # Кнопка докупки трафика
-        show_traffic_topup = False
-        if subscription and not subscription.is_trial and (subscription.traffic_limit_gb or 0) > 0:
-            if settings.is_tariffs_mode() and getattr(subscription, 'tariff_id', None):
-                show_traffic_topup = settings.BUY_TRAFFIC_BUTTON_VISIBLE
-            elif settings.is_traffic_topup_enabled() and not settings.is_traffic_topup_blocked():
-                show_traffic_topup = settings.BUY_TRAFFIC_BUTTON_VISIBLE
-
-        if show_traffic_topup:
-            keyboard.append(
-                [InlineKeyboardButton(text=texts.t('BUY_TRAFFIC_BUTTON', '📈 Докупить трафик'), callback_data='buy_traffic')]
-            )
 
     # --- Под строкой Подключиться: Попробовать (если не использована) ---
     show_trial = not has_had_paid_subscription and not has_active_subscription
@@ -1151,40 +1142,15 @@ def get_subscription_keyboard(
                     ]
                 )
 
-            # Ряд: [Управление подпиской] с автоплатежом внутри
-            settings_row = [
-                InlineKeyboardButton(
-                    text=texts.t('SUBSCRIPTION_SETTINGS_BUTTON', '⚙️ Управление подпиской'),
-                    callback_data='subscription_settings',
-                )
-            ]
-            if settings.is_tariffs_mode() and subscription:
-                tariff_callback = 'tariff_switch' if is_daily_tariff else 'instant_switch'
-                settings_row.append(
+            # Ряд: [Управление подпиской]
+            keyboard.append(
+                [
                     InlineKeyboardButton(
-                        text=texts.t('AUTOPAY_BUTTON', '💳 Автоплатеж'),
-                        callback_data='subscription_autopay',
+                        text=texts.t('SUBSCRIPTION_SETTINGS_BUTTON', '⚙️ Управление подпиской'),
+                        callback_data='subscription_settings',
                     )
-                )
-            keyboard.append(settings_row)
-
-            # Кнопка докупки трафика для платных подписок
-            # В режиме тарифов проверяем can_topup_traffic() у тарифа, в классическом - глобальные настройки
-            show_traffic_topup = False
-            if subscription and (subscription.traffic_limit_gb or 0) > 0:
-                if settings.is_tariffs_mode() and tariff:
-                    show_traffic_topup = tariff.can_topup_traffic()
-                elif settings.is_traffic_topup_enabled() and not settings.is_traffic_topup_blocked():
-                    show_traffic_topup = True
-
-            if show_traffic_topup:
-                keyboard.append(
-                    [
-                        InlineKeyboardButton(
-                            text=texts.t('BUY_TRAFFIC_BUTTON', '📈 Докупить трафик'), callback_data='buy_traffic'
-                        )
-                    ]
-                )
+                ]
+            )
 
     keyboard.append([InlineKeyboardButton(text=texts.BACK, callback_data='back_to_menu')])
 
@@ -3132,6 +3098,7 @@ def get_updated_subscription_settings_keyboard(
 
     # Если подписка на тарифе - отключаем страны, модем, трафик
     has_tariff = tariff is not None
+    is_daily_tariff = tariff and getattr(tariff, 'is_daily', False)
 
     # Для суточных тарифов кнопка паузы теперь в главном меню подписки
 
@@ -3165,7 +3132,6 @@ def get_updated_subscription_settings_keyboard(
         )
 
     # --- Блок: Устройства ---
-    # Устройства: для тарифов - только если указана цена за устройство
     if has_tariff:
         tariff_device_price = getattr(tariff, 'device_price_kopeks', None)
         if tariff_device_price is not None and tariff_device_price > 0:
@@ -3195,6 +3161,29 @@ def get_updated_subscription_settings_keyboard(
             )
         ]
     )
+
+    # --- Блок: Автоплатеж ---
+    if not has_tariff:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=texts.t('AUTOPAY_BUTTON', '💳 Автоплатеж'),
+                    callback_data='subscription_autopay',
+                )
+            ]
+        )
+
+    # --- Блок: Тариф (переключение) ---
+    if settings.is_tariffs_mode() and subscription:
+        tariff_callback = 'tariff_switch' if is_daily_tariff else 'instant_switch'
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=texts.t('CHANGE_TARIFF_BUTTON', '📦 Тариф'),
+                    callback_data=tariff_callback,
+                )
+            ]
+        )
 
     if settings.is_subscription_revoke_enabled():
         keyboard.append(
