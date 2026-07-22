@@ -678,8 +678,14 @@ def get_main_menu_keyboard(
         if happ_row:
             keyboard.append(happ_row)
 
-    # --- Под строкой Подключиться: Попробовать (если не использована) ---
-    show_trial = not has_had_paid_subscription and not has_active_subscription
+    # --- Под строкой Подключиться: Попробовать (только для новых пользователей без какой-либо подписки) ---
+    has_any_subscription = subscription is not None
+    show_trial = (
+        not has_had_paid_subscription
+        and not has_active_subscription
+        and not subscription_is_active
+        and not has_any_subscription
+    )
     if show_trial:
         keyboard.append([InlineKeyboardButton(text=texts.MENU_TRIAL, callback_data='menu_trial')])
 
@@ -3117,16 +3123,8 @@ def get_updated_subscription_settings_keyboard(
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    text=texts.t('SWITCH_TRAFFIC_BUTTON', '🔄 Переключить трафик'),
-                    callback_data='subscription_switch_traffic',
-                )
-            ]
-        )
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    text=texts.t('RESET_TRAFFIC_BUTTON', '🔄 Сбросить трафик'),
-                    callback_data='subscription_reset_traffic',
+                    text='📊 Трафик',
+                    callback_data='subscription_traffic_menu',
                 )
             ]
         )
@@ -3138,8 +3136,8 @@ def get_updated_subscription_settings_keyboard(
             keyboard.append(
                 [
                     InlineKeyboardButton(
-                        text=texts.t('CHANGE_DEVICES_BUTTON', '📱 Изменить устройства'),
-                        callback_data='subscription_change_devices',
+                        text='📱 Устройства',
+                        callback_data='subscription_devices_menu',
                     )
                 ]
             )
@@ -3147,20 +3145,11 @@ def get_updated_subscription_settings_keyboard(
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    text=texts.t('CHANGE_DEVICES_BUTTON', '📱 Изменить устройства'),
-                    callback_data='subscription_change_devices',
+                    text='📱 Устройства',
+                    callback_data='subscription_devices_menu',
                 )
             ]
         )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text=texts.t('MANAGE_DEVICES_BUTTON', '🔧 Управление устройствами'),
-                callback_data='subscription_manage_devices',
-            )
-        ]
-    )
 
     # --- Блок: Автоплатеж ---
     if not has_tariff:
@@ -3198,6 +3187,54 @@ def get_updated_subscription_settings_keyboard(
     keyboard.append([InlineKeyboardButton(text=texts.BACK, callback_data='menu_subscription')])
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def get_traffic_submenu_keyboard(language: str = DEFAULT_LANGUAGE) -> InlineKeyboardMarkup:
+    texts = get_texts(language)
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=texts.t('SWITCH_TRAFFIC_BUTTON', '🔄 Переключить трафик'),
+                    callback_data='subscription_switch_traffic',
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=texts.t('RESET_TRAFFIC_BUTTON', '🔄 Сбросить трафик'),
+                    callback_data='subscription_reset_traffic',
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=texts.t('BUY_TRAFFIC_BUTTON', '📈 Докупить трафик'),
+                    callback_data='buy_traffic',
+                )
+            ],
+            [InlineKeyboardButton(text=texts.BACK, callback_data='subscription_settings')],
+        ]
+    )
+
+
+def get_devices_submenu_keyboard(language: str = DEFAULT_LANGUAGE) -> InlineKeyboardMarkup:
+    texts = get_texts(language)
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=texts.t('CHANGE_DEVICES_BUTTON', '📱 Изменить устройства'),
+                    callback_data='subscription_change_devices',
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=texts.t('MANAGE_DEVICES_BUTTON', '🔧 Управление устройствами'),
+                    callback_data='subscription_manage_devices',
+                )
+            ],
+            [InlineKeyboardButton(text=texts.BACK, callback_data='subscription_settings')],
+        ]
+    )
 
 
 def get_device_reset_confirm_keyboard(
