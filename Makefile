@@ -63,3 +63,20 @@ help: ## Показать список доступных команд
 	@echo ""
 	@awk -F':.*## ' '/^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
+
+# ===== ФРОНТЕНД КАБИНЕТА =====
+.PHONY: frontend-build
+frontend-build:
+	@echo "🔨 Сборка фронтенда..."
+	cd cabinet-frontend && docker build --platform linux/amd64 -t cabinet-frontend-builder --target builder .
+	@echo "📦 Копирование..."
+	docker run --rm -v $$(pwd)/cabinet-frontend/dist:/dist cabinet-frontend-builder cp -r /app/dist/. /dist/ 2>/dev/null || true
+	@echo "✅ Готово"
+
+.PHONY: frontend-deploy
+frontend-deploy:
+	@echo "🚀 Деплой..."
+	sudo mkdir -p /srv/cabinet
+	sudo cp -r cabinet-frontend/dist/* /srv/cabinet/
+	sudo systemctl reload caddy
+	@echo "✅ Фронтенд развёрнут"
