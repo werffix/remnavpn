@@ -482,28 +482,13 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
         warning=warning_text,
         tariff_info_block=tariff_info_block,
         subscription_type=subscription_type,
-        end_date=format_local_datetime(subscription.end_date, '%d.%m.%Y %H:%M'),
+        end_date=format_local_datetime(subscription.end_date, '%d.%m.%Y'),
         time_left=time_left_text,
         traffic=traffic_used_display,
         servers=servers_display,
         devices_used=devices_used_str,
         device_limit=device_limit_display,
     )
-
-    if show_devices and devices_list:
-        message += '\n\n' + texts.t(
-            'SUBSCRIPTION_CONNECTED_DEVICES_TITLE',
-            '<blockquote>📱 <b>Подключенные устройства:</b>\n',
-        )
-        for device in devices_list[:5]:
-            platform = device.get('platform', 'Unknown')
-            device_model = device.get('deviceModel', 'Unknown')
-            device_info = f'{platform} - {device_model}'
-
-            if len(device_info) > 35:
-                device_info = device_info[:32] + '...'
-            message += f'• {device_info}\n'
-        message += texts.t('SUBSCRIPTION_CONNECTED_DEVICES_FOOTER', '</blockquote>')
 
     # Отображаем докупленный трафик
     if subscription.traffic_limit_gb > 0:  # Только для лимитированных тарифов
@@ -560,26 +545,6 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
                 message += f'  {bar} {progress_percent:.0f}% | до {expire_date}\n'
 
             message += texts.t('SUBSCRIPTION_PURCHASED_TRAFFIC_FOOTER', '</blockquote>')
-
-    subscription_link = get_display_subscription_link(subscription)
-    hide_subscription_link = settings.should_hide_subscription_link()
-
-    if subscription_link and actual_status in ['trial_active', 'paid_active'] and not hide_subscription_link:
-        subscription_link_display = subscription_link
-
-        if settings.is_happ_cryptolink_mode():
-            subscription_link_display = f'<blockquote expandable><code>{subscription_link}</code></blockquote>'
-        else:
-            subscription_link_display = f'<code>{subscription_link}</code>'
-
-        message += '\n\n' + texts.t(
-            'SUBSCRIPTION_CONNECT_LINK_SECTION',
-            '🔗 <b>Ссылка для подключения:</b>\n{subscription_url}',
-        ).format(subscription_url=subscription_link_display)
-        message += '\n\n' + texts.t(
-            'SUBSCRIPTION_CONNECT_LINK_PROMPT',
-            '📱 Скопируйте ссылку и добавьте в ваше VPN приложение',
-        )
 
     await callback.message.edit_text(
         message,

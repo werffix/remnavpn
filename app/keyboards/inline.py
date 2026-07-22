@@ -1144,30 +1144,26 @@ def get_subscription_keyboard(
                     [InlineKeyboardButton(text=pause_text, callback_data='toggle_daily_subscription_pause')]
                 )
             else:
-                # Для обычного тарифа: [Продлить] [Автоплатеж]
+                # Для обычного тарифа: [Продлить]
                 keyboard.append(
                     [
                         InlineKeyboardButton(text=texts.MENU_EXTEND_SUBSCRIPTION, callback_data='subscription_extend'),
-                        InlineKeyboardButton(
-                            text=texts.t('AUTOPAY_BUTTON', '💳 Автоплатеж'),
-                            callback_data='subscription_autopay',
-                        ),
                     ]
                 )
 
-            # Ряд: [Настройки] [Тариф] (если режим тарифов)
+            # Ряд: [Управление подпиской] с автоплатежом внутри
             settings_row = [
                 InlineKeyboardButton(
-                    text=texts.t('SUBSCRIPTION_SETTINGS_BUTTON', '⚙️ Настройки'),
+                    text=texts.t('SUBSCRIPTION_SETTINGS_BUTTON', '⚙️ Управление подпиской'),
                     callback_data='subscription_settings',
                 )
             ]
             if settings.is_tariffs_mode() and subscription:
-                # Для суточных тарифов переходим на список тарифов, для обычных - мгновенное переключение
                 tariff_callback = 'tariff_switch' if is_daily_tariff else 'instant_switch'
                 settings_row.append(
                     InlineKeyboardButton(
-                        text=texts.t('CHANGE_TARIFF_BUTTON', '📦 Тариф'), callback_data=tariff_callback
+                        text=texts.t('AUTOPAY_BUTTON', '💳 Автоплатеж'),
+                        callback_data='subscription_autopay',
                     )
                 )
             keyboard.append(settings_row)
@@ -3149,15 +3145,8 @@ def get_updated_subscription_settings_keyboard(
             ]
         )
 
+    # --- Блок: Трафик ---
     if settings.is_traffic_selectable() and not has_tariff:
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    text=texts.t('RESET_TRAFFIC_BUTTON', '🔄 Сбросить трафик'),
-                    callback_data='subscription_reset_traffic',
-                )
-            ]
-        )
         keyboard.append(
             [
                 InlineKeyboardButton(
@@ -3166,7 +3155,16 @@ def get_updated_subscription_settings_keyboard(
                 )
             ]
         )
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=texts.t('RESET_TRAFFIC_BUTTON', '🔄 Сбросить трафик'),
+                    callback_data='subscription_reset_traffic',
+                )
+            ]
+        )
 
+    # --- Блок: Устройства ---
     # Устройства: для тарифов - только если указана цена за устройство
     if has_tariff:
         tariff_device_price = getattr(tariff, 'device_price_kopeks', None)

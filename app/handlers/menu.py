@@ -997,6 +997,57 @@ async def process_language_change(
     await callback.answer(texts.t('LANGUAGE_SELECTED', '🌐 Язык интерфейса обновлен.'))
 
 
+async def handle_reply_main_menu(message: types.Message, state: FSMContext, db_user: User, db: AsyncSession):
+    await state.clear()
+
+    texts = get_texts(db_user.language)
+
+    _subs = getattr(db_user, 'subscriptions', None) or []
+    has_active_subscription = any(sub.is_active or getattr(sub, 'actual_status', None) == 'limited' for sub in _subs)
+    subscription_is_active = has_active_subscription
+
+    menu_text = await get_main_menu_text(db_user, texts, db)
+
+    draft_exists = await has_subscription_checkout_draft(db_user.id)
+    show_resume_checkout = should_offer_checkout_resume(db_user, draft_exists)
+
+    try:
+        has_saved_cart = await user_cart_service.has_user_cart(db_user.id)
+    except Exception as e:
+        logger.error('Ошибка проверки сохраненной корзины для пользователя', db_user_id=db_user.id, error=e)
+        has_saved_cart = False
+
+    is_admin = settings.is_admin(db_user.telegram_id)
+    is_moderator = (not is_admin) and SupportSettingsService.is_moderator(db_user.telegram_id)
+
+    custom_buttons = []
+    if not settings.is_text_main_menu_mode():
+        custom_buttons = await MainMenuButtonService.get_buttons_for_user(
+            db,
+            is_admin=is_admin,
+            has_active_subscription=has_active_subscription,
+            subscription_is_active=subscription_is_active,
+        )
+
+    keyboard = await get_main_menu_keyboard_async(
+        db=db,
+        user=db_user,
+        language=db_user.language,
+        is_admin=is_admin,
+        is_moderator=is_moderator,
+        has_had_paid_subscription=db_user.has_had_paid_subscription,
+        has_active_subscription=has_active_subscription,
+        subscription_is_active=subscription_is_active,
+        balance_kopeks=db_user.balance_kopeks,
+        subscription=db_user.subscription,
+        show_resume_checkout=show_resume_checkout,
+        has_saved_cart=has_saved_cart,
+        custom_buttons=custom_buttons,
+    )
+
+    await message.answer(menu_text, reply_markup=keyboard, parse_mode='HTML')
+
+
 async def handle_back_to_menu(callback: types.CallbackQuery, state: FSMContext, db_user: User, db: AsyncSession):
     if db_user is None:
         # Пользователь не найден, используем язык по умолчанию
@@ -1462,6 +1513,13 @@ async def handle_activate_button(callback: types.CallbackQuery, db_user: User, d
 
 def register_handlers(dp: Dispatcher):
     dp.callback_query.register(handle_back_to_menu, F.data == 'back_to_menu')
+
+    dp.message.register(
+        handle_reply_main_menu,
+        StateFilter(None),
+        F.from_user.is_bot.is_(False),
+        F.text == '🏠 Главное меню',
+    )
 
     dp.callback_query.register(
         handle_profile_unavailable,

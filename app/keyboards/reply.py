@@ -18,6 +18,8 @@ def get_main_reply_keyboard(language: str = 'ru') -> ReplyKeyboardMarkup:
 
     keyboard.append([KeyboardButton(text=texts.MENU_SUPPORT), KeyboardButton(text=texts.MENU_RULES)])
 
+    keyboard.append([KeyboardButton(text=texts.t('MAIN_MENU_BUTTON', '🏠 Главное меню'))])
+
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, one_time_keyboard=False)
 
 
