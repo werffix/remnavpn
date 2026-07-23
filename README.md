@@ -1,344 +1,212 @@
 <div align="center">
 
-<img src=".github/assets/logo.png" alt="Bedolaga Bot" width="800" />
+<img src="vpn_logo.png" alt="q1 vpn" width="120" />
 
-# Bedolaga Bot
+# q1 vpn — Telegram VPN Bot
 
-**Telegram-бот для автоматизации VPN-бизнеса на базе [Remnawave](https://github.com/remnawave/backend)**
+**Telegram-бот для продажи VPN-подписок на базе [Remnawave](https://github.com/remnawave/backend)**
 
-Принимает оплату, выдаёт подписки, управляет пользователями — пока вы спите.
+Приём оплаты, выдача подписок, управление пользователями — автоматически.
 
-[![Python 3.13+](https://img.shields.io/badge/Python-3.13+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docs.bedolagam.ru/getting-started/docker-deployment)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-
-[📖 Документация](https://docs.bedolagam.ru) · [🤖 Тестировать бота](https://t.me/zero_ping_vpn_bot?start=Git) · [💬 Чат сообщества](https://t.me/+wTdMtSWq8YdmZmVi)
+[![Python 3.13+](https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
-## 🧩 Что такое Bedolaga?
+## Что это
 
-Bedolaga — полнофункциональная платформа для продажи VPN-подписок через Telegram. Бот интегрируется с панелью [Remnawave](https://github.com/remnawave/backend) и берёт на себя весь цикл: от регистрации пользователя до автопродления подписки.
+Telegram-бот, который берёт на себя весь цикл VPN-бизнеса: от регистрации до автопродления подписки. Интегрируется с панелью Remnawave и поддерживает 24+ платёжных провайдера.
 
-> 🖥 **[Bedolaga Cabinet](https://github.com/BEDOLAGA-DEV/bedolaga-cabinet)** — веб-кабинет на React + TypeScript, который существенно расширяет возможности бота: личный кабинет, OAuth-авторизация (Google, Yandex, Discord, VK, Telegram OIDC), лендинги, аналитика продаж, RBAC и подарочные подписки.
+### Основные возможности
 
-<div align="center">
-
-<img src=".github/assets/bot-preview.png" alt="Bedolaga Bot — Telegram" width="700" />
-
-</div>
-
----
-
-## ✨ Возможности
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-### 📦 Подписки и тарифы
-
-- 🎯 Гибкие тарифные планы (от X дней до X дней)
-- 📊 Трафик: безлимит, фиксированный лимит или пакеты с возможностью докупки
-- 📱 Управление устройствами (1–20 на подписку) или отключение лимитов
-- 🌍 Автовыбор сервера(Тарифы) или ручной выбор(Конфигуратор подписки - с возможностью докупки)
-- 🆓 Пробный период(Возможен платный) с конвертацией в платный
-- 🛒 Умная корзина — сохраняет выбор при недостатке баланса
-- 🔄 Автопродление за 3 дня до окончания
-- 🎁 Подарочные подписки и конфигурируемые лендинги для быстрой продажи в вебе без авторизации
-
-</td>
-<td width="50%" valign="top">
-
-### 💳 Платежи
-
-- 🏦 **24+ платёжных провайдера** одновременно
-- 💰 Единый баланс: пополнение любым способом → покупка с баланса
-- ⚡ Автопокупка подписки после пополнения
-- 💾 Рекуррентные платежи (сохранённые карты)
-- 🧾 Фискализация через НалоGo (для самозанятых)
-- 🔍 Автопроверка статуса платежей
-- 🛍 Гостевые покупки через лендинги
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### 📣 Маркетинг и продвижение
-
-- 🏷 Промокоды (деньги, дни подписки, триалы)
-- 👥 Реферальная программа с выводом средств
-- 👥 Партнерская система
-- 📨 Рассылки по сегментам пользователей
-- 🌐 Кастомные лендинги с аналитикой
-- 🎮 Конкурсы и ежедневные игры с призами
-- 🎯 Персональные предложения и скидки
-- 📈 Маркетинговые кампании с трекингом
-- 🌐 Обязательная мультиподписка на каналы с возможностью автоотключения подписки - при отписки от канала
-
-</td>
-<td width="50%" valign="top">
-
-### 🛠 Администрирование
-
-- 🤖 Панель управления прямо в Telegram
-- 👤 Управление пользователями, подписками, платежами
-- 📬 Уведомления в топики: покупки, продления, пополнения
-- 💾 Автобэкапы БД с восстановлением из бота
-- 🚧 Режим техработ (авто-детект недоступности панели)
-- 📡 Мониторинг трафика и аномалий
-- 🤝 Партнёрская программа
-- 🔐 RBAC: роли и гранулярные права доступа
-- 📈 Детальная отчетность с возможностью визуализации Реф сети
-- 🔐 Блокировка юзеров из общего черного списка
-И многое др...
-
-</td>
-</tr>
-</table>
+- **Подписки** — гибкие тарифы, докупка трафика, управление устройствами, пробный период
+- **Платежи** — Telegram Stars, YooKassa, CryptoBot, Freekassa и ещё 20+ провайдеров
+- **Реферальная программа** — бонусы за приглашений, вывод средств
+- **Автопродление** — автоматическое продление за 3 дня до окончания
+- **Личный кабинет** — подписка, ID, трафик, устройства — всё в одном сообщении
+- **Мультиязычность** — русский, английский, украинский, китайский, фарси
+- **Уведомления** — покупки, продления, тикеты поддержки в топики Telegram
 
 ---
 
-## 💳 Платёжные провайдеры
-
-<div align="center">
-
-| | Провайдер | Методы оплаты | Валюта |
-|:---:|:---|:---|:---:|
-| ⭐ | **Telegram Stars** | Звёзды Telegram | XTR |
-| 🏦 | **YooKassa** | Карты, СБП | RUB |
-| 🏦 | **YooKassa СБП** | Система быстрых платежей | RUB |
-| 🪙 | **CryptoBot** | USDT, TON, BTC, ETH | Crypto |
-| 🪙 | **Heleket** | USDT, мульти-сеть | Crypto |
-| 💳 | **CloudPayments** | Карты, 3D-Secure | RUB |
-| 💳 | **Freekassa** | NSPK СБП, карты | RUB |
-| 💳 | **Kassa AI** | СБП, карты, SberPay | RUB |
-| 💳 | **PayPalych (Pal24)** | Карты, СБП | RUB |
-| 🤝 | **[Platega](https://t.me/ArstanPlatega)** 🔸 | Карты, СБП, крипто | RUB |
-| 🤝 | **[WATA](https://t.me/wyrz_wata)** 🔸 | СБП, Карты | RUB |
-| 💳 | **MulenPay** | Карты | RUB |
-| 💳 | **RioPay** | Карты | RUB |
-| 💳 | **SeverPay** | СБП, карты | RUB |
-| 🤝 | **[PayPear](https://t.me/Paymen1_Manager)** 🔸 | Карты, СБП, SberPay, T-Pay | RUB |
-| 🤝 | **[RollyPay](https://rollypay.io/?utm_source=bedolaga&utm_medium=community&utm_campaign=integration)** 🔸 | СБП, карты, крипто | RUB → USDT |
-| 🤝 | **[AuraPay](https://aurapay.tech/)** 🔸 | Карты, СБП | RUB |
-| 🤝 | **[Overpay](https://overpay.pro/)** 🔸 | Карты, СБП | RUB |
-| 🦌 | **Antilopay** | Карты, СБП, SberPay (RSA подпись) | RUB |
-| 💳 | **Etoplatezhi** | Карты, СБП | RUB |
-| 🪐 | **[Jupiter](https://t.me/k_juppiter)** 🔸 | СБП через QR (FPGate P2P v2.1) | RUB |
-| 🍩 | **[Donut](https://t.me/donut_payment)** 🔸 | Карты, СБП по телефону, СБП QR (P2P) | RUB |
-| 🌋 | **Lava Business** | Карты, СБП (gate.lava.ru) | RUB |
-| 🍎 | **Apple In-App Purchase** | Покупки через iOS App Store | USD |
-| 📲 | **Tribute** | Telegram-платежи | RUB |
-
-</div>
-
-> 🔸 — официальный партнёр Bedolaga (особые условия по кодовому слову **`bedolaga`**)
->
-> Все провайдеры работают параллельно через единый веб-сервер на порту 8080. Подробная настройка — в [документации](https://docs.bedolagam.ru/bot/payments).
-
-<div align="center">
-<table>
-<tr>
-<td align="center">
-
-<img src=".github/assets/platega-logo.jpg" alt="Platega" width="60" />
-
-**🤝 Официальный партнёр Platega**
-
-Bedolaga — официальный партнёр платёжной системы **Platega**.<br>
-Пользователи бота получают **особые условия** при подключении по кодовому слову **`bedolaga`**
-
-📩 По вопросам: [@ArstanPlatega](https://t.me/ArstanPlatega)
-
-</td>
-<td align="center">
-
-<img src=".github/assets/wata-logo.jpg" alt="WATA" width="60" />
-
-**🤝 Официальный партнёр WATA**
-
-Bedolaga — официальный партнёр платёжной системы **WATA**.<br>
-Пользователи бота получают **бесплатное подключение** по кодовому слову **`bedolaga`**
-
-📩 По вопросам: [@wyrz_wata](https://t.me/wyrz_wata)
-
-</td>
-</tr>
-<tr>
-<td align="center">
-
-**🤝 Официальный партнёр PayPear**
-
-Bedolaga — официальный партнёр платёжной системы **[PayPear](https://paypear.ru)**.<br>
-Банковские карты, СБП, SberPay и T-Pay — всё через единый API.<br>
-Подключение по **спец. условиям** через кодовое слово **`БЕДОЛАГА`**
-
-📩 Менеджер: [@Paymen1_Manager](https://t.me/Paymen1_Manager)
-
-</td>
-<td align="center">
-
-**🤝 Официальный партнёр RollyPay**
-
-Bedolaga — официальный партнёр платёжного шлюза **[RollyPay](https://rollypay.io/?utm_source=bedolaga&utm_medium=community&utm_campaign=integration)**.<br>
-СБП (от 5%), банковские карты РФ, крипто, вывод в USDT.<br>
-Универсальная форма оплаты, высокая проходимость, стабильная работа в каскаде.<br>
-Подключение по кодовому слову **`БЕДОЛАГА`** — **спец. условия**
-
-📩 Менеджер: [@rollypay_manager](https://t.me/rollypay_manager) | 🌐 [rollypay.io](https://rollypay.io/?utm_source=bedolaga&utm_medium=community&utm_campaign=integration)
-
-</td>
-</tr>
-<tr>
-<td align="center">
-
-**🤝 Официальный партнёр AuraPay**
-
-Bedolaga — официальный партнёр платёжной системы **[AuraPay](https://aurapay.tech/)**.<br>
-Банковские карты и СБП через единый API с быстрой интеграцией.<br>
-Подключение по кодовому слову **`БЕДОЛАГА`** — **спец. условия**
-
-📩 Менеджер: [@kickdownm](https://t.me/kickdownm) | 🌐 [aurapay.tech](https://aurapay.tech/)
-
-</td>
-<td align="center">
-
-**🤝 Официальный партнёр Overpay**
-
-Bedolaga — официальный партнёр платёжного шлюза **[Overpay](https://overpay.pro/)**.<br>
-Банковские карты и СБП, mTLS-авторизация, HPP-интеграция.<br>
-Подключение по кодовому слову **`БЕДОЛАГА`** — **спец. условия**
-
-📩 Менеджер: [@A_OverPay](https://t.me/A_OverPay) | 🌐 [overpay.pro](https://overpay.pro/)
-
-</td>
-</tr>
-<tr>
-<td align="center">
-
-**🤝 Официальный партнёр Jupiter (FPGate P2P)**
-
-Bedolaga — официальный партнёр платёжного шлюза **Jupiter** (FPGate P2P v2.1).<br>
-Эквайринг СБП через QR-код банковского приложения, HMAC-SHA256 подпись.<br>
-Высокая проходимость, callback-driven архитектура, защита от replay-атак.<br>
-Подключение по кодовому слову **`БЕДОЛАГА`** — **спец. условия**
-
-📩 Менеджер: [@k_juppiter](https://t.me/k_juppiter)
-
-</td>
-<td align="center">
-
-**🤝 Официальный партнёр Donut**
-
-Bedolaga — официальный партнёр платёжной системы **Donut** (Donut P2P).<br>
-P2P-оплата картой, СБП по номеру телефона и СБП QR — три метода через единый API.<br>
-HMAC-SHA256 подпись, sticky terminal-status guard, защита от amount tampering.<br>
-Подключение по кодовому слову **`БЕДОЛАГА`** — **спец. условия**
-
-📩 Менеджер: [@donut_payment](https://t.me/donut_payment)
-
-</td>
-</tr>
-</table>
-</div>
-
----
-
-## 🚀 Быстрый старт
+## Быстрый старт
 
 ```bash
-git clone https://github.com/BEDOLAGA-DEV/remnawave-bedolaga-telegram-bot.git
-cd remnawave-bedolaga-telegram-bot
+git clone https://github.com/werffix/remnavpn-main.git
+cd remnavpn-main
 cp .env.example .env   # заполните переменные
 docker compose up -d
 ```
 
-📖 Подробнее: **[Развёртывание →](https://docs.bedolagam.ru/getting-started/docker-deployment)** · **[Переменные окружения →](https://docs.bedolagam.ru/getting-started/environment)**
+### Минимальный `.env`
+
+```env
+BOT_TOKEN=123456:ABC-DEF...
+ADMIN_IDS=123456789
+SUPPORT_USERNAME=@support
+
+# Remnawave панель
+REMNAWAVE_API_URL=https://panel.example.com
+REMNAWAVE_API_KEY=your_api_key
+REMNAWAVE_AUTH_TYPE=api_key
+
+# БД (Docker)
+DATABASE_MODE=auto
+POSTGRES_HOST=postgres
+POSTGRES_DB=remnawave_bot
+POSTGRES_USER=remnawave_user
+POSTGRES_PASSWORD=secure_password_123
+REDIS_URL=redis://redis:6379/0
+
+# Платежи (включите нужные)
+TELEGRAM_STARS_ENABLED=true
+```
+
+### Перезапуск после изменений
+
+```bash
+docker compose down && docker compose up -d --build
+```
 
 ---
 
-## 🏗 Стек
+## Стек
 
-| | Компонент | Технология |
-|:---:|:---|:---|
-| 🐍 | Язык | Python 3.13, полностью async |
-| 🤖 | Telegram | aiogram 3.x |
-| 🗄 | База данных | PostgreSQL + SQLAlchemy 2.x + Alembic |
-| 🔴 | Кэш/очереди | Redis |
-| ⚡ | Web-сервер | FastAPI (webhook, платежи, Cabinet API) |
-| 📝 | Логирование | structlog |
-| 🐳 | Контейнеризация | Docker + Docker Compose |
-| 🧹 | Линтер | ruff |
-
----
-
-## 🖥 Bedolaga Cabinet
-
-<div align="center">
-
-[![Cabinet](https://img.shields.io/badge/Репозиторий-Bedolaga_Cabinet-6366f1?style=for-the-badge&logo=react&logoColor=white)](https://github.com/BEDOLAGA-DEV/bedolaga-cabinet)
-
-<br>
-
-<img src=".github/assets/cabinet-preview.png" alt="Bedolaga Cabinet" width="700" />
-
-</div>
-
-Веб-кабинет на **React + TypeScript**, существенно расширяющий возможности бота:
-
-| | Возможность | Описание |
-|:---:|:---|:---|
-| 👤 | **Личный кабинет** | Подписки, баланс, устройства, реферальная программа |
-| 🔑 | **OAuth-авторизация** | Google, Yandex, Discord, VK, Telegram OIDC |
-| 🌐 | **Лендинги** | Кастомные страницы для привлечения клиентов |
-| 📊 | **Админ-панель** | Аналитика продаж, RBAC, управление контентом |
-| 🎁 | **Подарки** | Покупка и отправка подписок другим пользователям |
-| 🔍 | **Поиск платежей** | Поиск по инвойсу, клиенту с фильтрами и статистикой |
+| Компонент | Технология |
+|:---|:---|
+| Язык | Python 3.13, async |
+| Telegram | aiogram 3.x |
+| БД | PostgreSQL 15 + SQLAlchemy 2.x + Alembic |
+| Кэш | Redis 7 |
+| Web-сервер | FastAPI (webhook, платежи, API) |
+| Логирование | structlog |
+| Контейнеризация | Docker Compose |
 
 ---
 
-## 📚 Документация
+## Структура проекта
 
-| | Раздел | Описание |
-|:---:|:---|:---|
-| 🚀 | [Быстрый старт](https://docs.bedolagam.ru/getting-started/quickstart) | Развёртывание за 5 минут |
-| 💳 | [Настройка платежей](https://docs.bedolagam.ru/bot/payments) | 24+ провайдера, webhook, фискализация, Apple IAP |
-| 📦 | [Подписки и тарифы](https://docs.bedolagam.ru/bot/subscriptions) | Конфигурация планов и трафика |
-| 👥 | [Реферальная программа](https://docs.bedolagam.ru/bot/referral-program) | Партнёрка и вывод средств |
-| 🖥 | [Cabinet](https://docs.bedolagam.ru/cabinet/overview) | Настройка веб-кабинета |
-| 🏷 | [Промо-система](https://docs.bedolagam.ru/bot/promo-system) | Промокоды, предложения, скидки |
-| 🔌 | [API Reference](https://docs.bedolagam.ru/api-reference/overview) | REST API для внешних интеграций |
+```
+app/
+├── bot.py                  # Точка входа
+├── config.py               # Все настройки (Settings)
+├── handlers/               # Обработчики команд и callback
+│   ├── menu.py             # Главное меню
+│   └── subscription/       # Подписки, покупки, продление
+├── keyboards/              # Клавиатуры (inline + reply)
+│   ├── inline.py           # Инлайн-кнопки
+│   └── reply.py            # Reply-клавиатура
+├── services/               # Бизнес-логика
+├── database/               # Модели и миграции
+├── localization/           # Интерфейс (i18n)
+└── webserver/              # FastAPI, webhook-хендлеры
 
-<div align="center">
-
-**📖 Полная документация: [docs.bedolagam.ru](https://docs.bedolagam.ru)**
-
-</div>
-
----
-
-## 💬 Сообщество
-
-<div align="center">
-
-[![Telegram Chat](https://img.shields.io/badge/Telegram-Чат_сообщества-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/+wTdMtSWq8YdmZmVi)
-[![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/BEDOLAGA-DEV/remnawave-bedolaga-telegram-bot/issues)
-
-</div>
-
-- 🐛 **Баги и предложения** — [GitHub Issues](https://github.com/BEDOLAGA-DEV/remnawave-bedolaga-telegram-bot/issues)
-- 💬 **Вопросы и обсуждения** — [Telegram-чат](https://t.me/+wTdMtSWq8YdmZmVi)
-- 🤖 **Тестирование** — [@zero_ping_vpn_bot](https://t.me/zero_ping_vpn_bot?start=Git)
+locales/                    # Файлы локализации (ru/en/ua/zh/fa)
+migrations/                 # Alembic миграции
+docker-compose.yml          # Оркестрация
+```
 
 ---
 
-<div align="center">
+## Кастомизации
 
-**[MIT License](LICENSE)** — используйте свободно для личных и коммерческих проектов.
+Данный форк отличается от оригинала следующими изменениями:
 
-</div>
+### Меню
+
+- Приветственное сообщение: `⚡️ Добро пожаловать в q1 vpn - интернет без ограничений!`
+- Кнопка **Подключиться** — на всю ширину
+- **Попробовать** — скрыта если у пользователя есть (или была) подписка
+- Личный кабинет и Реферальная система — в одну строку
+- Убраны: Баланс, Язык, Промокод, Докупить трафик
+
+### Личный кабинет
+
+- Отображается: имя, ID, баланс, статус подписки, дата окончания, трафик, устройства
+- Формат даты: `DD.MM.YYYY` (без времени)
+- Убраны: тип подписки, время до окончания, список серверов, ссылка подключения
+
+### Настройки подписки
+
+- Кнопки **Трафик** и **Устройства** открывают подменю
+- Подменю: переключение, сброс трафика, докупка; управление устройствами
+- Назад — возврат в настройки
+
+### Reply-клавиатура
+
+- Кнопки: Баланс, Промокод → убраны
+- Добавлена: 🏠 Главное меню
+
+---
+
+## Платёжные провайдеры
+
+| Провайдер | Методы | Валюта |
+|:---|:---|:---:|
+| Telegram Stars | Звёзды Telegram | XTR |
+| YooKassa | Карты, СБП | RUB |
+| CryptoBot | USDT, TON, BTC, ETH | Crypto |
+| Heleket | USDT, мульти-сеть | Crypto |
+| CloudPayments | Карты, 3D-Secure | RUB |
+| Freekassa | NSPK СБП, Карты | RUB |
+| Kassa AI | СБП, Карты, SberPay | RUB |
+| MulenPay | Карты | RUB |
+| RioPay | Карты | RUB |
+| SeverPay | СБП, Карты | RUB |
+| PayPear | Карты, СБП, SberPay | RUB |
+| RollyPay | СБП, Карты, Крипто | RUB |
+| AuraPay | Карты, СБП | RUB |
+| Overpay | Карты, СБП | RUB |
+| Antilopay | Карты, СБП, SberPay | RUB |
+| Etoplatezhi | Карты, СБП | RUB |
+| Jupiter | СБП через QR | RUB |
+| Donut | Карты, СБП, СБП QR | RUB |
+| Lava Business | Карты, СБП | RUB |
+| Apple IAP | iOS App Store | USD |
+| Tribute | Telegram-платежи | RUB |
+
+Все провайдеры работают параллельно через единый FastAPI-сервер на порту `8080`.
+
+---
+
+## Локализация
+
+| Язык | Файл | Код |
+|:---|:---|:---:|
+| Русский | `locales/ru.json` | `ru` |
+| English | `locales/en.json` | `en` |
+| Українська | `locales/ua.json` | `ua` |
+| 中文 | `locales/zh.json` | `zh` |
+| فارسی | `locales/fa.json` | `fa` |
+
+Для добавления нового языка — создайте файл `locales/<код>.json` и добавьте код в `AVAILABLE_LANGUAGES`.
+
+---
+
+## Документация
+
+| Раздел | Описание |
+|:---|:---|
+| [Remnawave Backend](https://github.com/remnawave/backend) | Панель управления VPN |
+| [Bedolaga Bot Docs](https://docs.bedolagam.ru) | Документация бота (оригинал) |
+| [Bedolaga Cabinet](https://github.com/BEDOLAGA-DEV/bedolaga-cabinet) | Веб-кабинет (React) |
+
+---
+
+## Обновление
+
+```bash
+git pull origin main
+docker compose down && docker compose up -d --build
+```
+
+Бот автоматически проверяет наличие новых версий через GitHub API (`werffix/remnavpn-main`).
+
+---
+
+## Лицензия
+
+[MIT](LICENSE) — свободное использование для личных и коммерческих проектов.
