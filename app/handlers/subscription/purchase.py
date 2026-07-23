@@ -357,12 +357,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
                 is_daily = getattr(tariff, 'is_daily', False)
                 tariff_type_str = '🔄 Суточный' if is_daily else '📅 Периодный'
 
-                tariff_info_lines = [
-                    f'<b>📦 {html.escape(tariff.name)}</b>',
-                    f'Тип: {tariff_type_str}',
-                    f'Трафик: {tariff.traffic_limit_gb} ГБ' if tariff.traffic_limit_gb > 0 else 'Трафик: ∞ Безлимит',
-                    f'Устройства: {tariff.device_limit}',
-                ]
+                tariff_info_lines = []
 
                 if is_daily:
                     # Для суточного тарифа показываем цену с учётом скидки промогруппы + promo-offer
@@ -435,6 +430,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
 
     # Определяем, суточный ли тариф для выбора шаблона
     is_daily_tariff = tariff and getattr(tariff, 'is_daily', False)
+    tariff_name = html.escape(tariff.name) if tariff else ''
 
     if is_daily_tariff:
         # Для суточных тарифов другой шаблон без "Действует до" и "Осталось"
@@ -445,11 +441,12 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
 💰 Баланс: {balance}
 📱 Подписка: {status_emoji} {status_display}{warning}{tariff_info_block}
 
-📱 Информация о подписке
-🎭 Тип: {subscription_type}
+📱 Информация о подписке:
+📦 Название: {tariff_name}
 📈 Трафик: {traffic}
-🌍 Серверы: {servers}
-📱 Устройства: {devices_used} / {device_limit}""",
+📱 Устройства: {devices_used} / {device_limit}
+
+👇 Выберите нужный пункт в меню ниже""",
         )
     else:
         message_template = texts.t(
@@ -459,13 +456,13 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
 💰 Баланс: {balance}
 📱 Подписка: {status_emoji} {status_display}{warning}{tariff_info_block}
 
-📱 Информация о подписке
-🎭 Тип: {subscription_type}
-📅 Действует до: {end_date}
-⏰ Осталось: {time_left}
+📱 Информация о подписке:
+📦 Название: {tariff_name}
+📅 Дата окончания: {end_date}
 📈 Трафик: {traffic}
-🌍 Серверы: {servers}
-📱 Устройства: {devices_used} / {device_limit}""",
+📱 Устройства: {devices_used} / {device_limit}
+
+👇 Выберите нужный пункт в меню ниже""",
         )
 
     if not show_devices:
@@ -491,6 +488,7 @@ async def show_subscription_info(callback: types.CallbackQuery, db_user: User, d
         servers=servers_display,
         devices_used=devices_used_str,
         device_limit=device_limit_display,
+        tariff_name=tariff_name,
     )
 
     # Отображаем докупленный трафик
