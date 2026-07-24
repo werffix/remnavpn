@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { adminUsersApi } from '@/api/admin'
 import { formatDate, formatKopeks } from '@/lib/utils'
-import { Search, Ban, Unban, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Ban, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([])
