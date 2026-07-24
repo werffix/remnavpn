@@ -1,29 +1,25 @@
 import api from './client'
 
-export interface TelegramWidgetData {
-  id: number
-  first_name: string
-  last_name?: string
-  username?: string
-  photo_url?: string
-  auth_date: number
-  hash: string
+export interface DeepLinkTokenResponse {
+  token: string
+  bot_username: string
+  expires_in: number
 }
 
-export interface TelegramWidgetConfig {
-  bot_username: string
-  size: 'large' | 'medium' | 'small'
-  radius: number
-  userpic: boolean
-  request_access: boolean
-  oidc_enabled: boolean
+export interface AuthResponse {
+  access_token: string
+  refresh_token: string
+  token_type: string
 }
 
 export const authApi = {
-  loginTelegramWidget: (data: TelegramWidgetData) =>
-    api.post('/auth/telegram/widget', data),
-  getTelegramWidgetConfig: () =>
-    api.get<TelegramWidgetConfig>('/branding/telegram-widget'),
+  requestDeepLink: () =>
+    api.post<DeepLinkTokenResponse>('/auth/deeplink/request'),
+  pollDeepLink: (token: string, campaignSlug?: string) =>
+    api.post<AuthResponse>('/auth/deeplink/poll', {
+      token,
+      ...(campaignSlug ? { campaign_slug: campaignSlug } : {}),
+    }),
   loginEmail: (email: string, password: string) =>
     api.post('/auth/email/login', { email, password }),
   registerEmail: (email: string, password: string) =>

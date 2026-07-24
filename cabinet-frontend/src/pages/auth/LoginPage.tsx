@@ -1,81 +1,95 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
-import { authApi, TelegramWidgetData } from '@/api/auth'
-import { Zap, AlertCircle } from 'lucide-react'
+import { authApi } from '@/api/auth'
+import { Zap, AlertCircle, ExternalLink, CheckCircle, Loader2 } from 'lucide-react'
 
-declare global {
-  interface Window {
-    TelegramLoginWidget?: {
-      onAuth: (data: TelegramWidgetData) => void
-    }
-  }
-}
+type Step = 'idle' | 'requesting' | 'waiting' | 'done' | 'error'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [tgReady, setTgReady] = useState(false)
-  const widgetRef = useRef<HTMLDivElement>(null)
-  const { login, loginTelegramWidget, isLoading } = useAuthStore()
+  const [step, setStep] = useState<Step>('idle')
+  const [deepLink, setDeepLink] = useState('')
+  const [botUsername, setBotUsername] = useState('')
+  const [countdown, setCountdown] = useState(0)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { login, isLoading } = useAuthStore()
   const navigate = useNavigate()
 
-  const handleTelegramAuth = useCallback(async (data: TelegramWidgetData) => {
-    setError('')
-    try {
-      await loginTelegramWidget(data)
-      navigate('/')
-    } catch {
-      setError('Ошибка входа через Telegram')
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current)
+      pollingRef.current = null
     }
-  }, [loginTelegramWidget, navigate])
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current)
+      countdownRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
-    // Set global callback for Telegram Widget
-    window.TelegramLoginWidget = {
-      onAuth: handleTelegramAuth,
-    }
+    return () => stopPolling()
+  }, [stopPolling])
 
-    // Load the widget script
-    const loadWidget = async () => {
-      try {
-        const { data: config } = await authApi.getTelegramWidgetConfig()
-        const username = config.bot_username
-
-        if (!username) {
-          setError('Telegram бот не настроен')
-          return
-        }
-
-        const script = document.createElement('script')
-        script.src = 'https://telegram.org/js/telegram-widget.js?2'
-        script.setAttribute('data-telegram-login', username)
-        script.setAttribute('data-size', config.size || 'large')
-        script.setAttribute('data-radius', String(config.radius || 10))
-        script.setAttribute('data-userpic', String(config.userpic ?? true))
-        script.setAttribute('data-request-access', config.request_access ? 'write' : '')
-        script.setAttribute('data-onauth', 'TelegramLoginWidget.onAuth(user)')
-        script.async = true
-
-        script.onload = () => setTgReady(true)
-        script.onerror = () => setError('Не удалось загрузить виджет Telegram')
-
-        if (widgetRef.current) {
-          widgetRef.current.innerHTML = ''
-          widgetRef.current.appendChild(script)
-        }
-      } catch {
-        setError('Не удалось загрузить конфигурацию виджета')
+  const pollToken = useCallback(async (token: string) => {
+    try {
+      const { data } = await authApi.pollDeepLink(token)
+      // 200 → login success
+      localStorage.setItem('access_token', data.access_token)
+      localStorage.setItem('refresh_token', data.refresh_token)
+      setStep('done')
+      stopPolling()
+      setTimeout(() => navigate('/'), 500)
+    } catch (err: any) {
+      if (err?.response?.status === 202) {
+        // Still pending — continue polling
+        return
       }
+      // 410 expired or other error
+      stopPolling()
+      setStep('error')
+      setError('Ссылка истекла. Попробуйте снова.')
     }
+  }, [navigate, stopPolling])
 
-    loadWidget()
+  const handleTelegramLogin = useCallback(async () => {
+    setError('')
+    setStep('requesting')
+    stopPolling()
 
-    return () => {
-      delete window.TelegramLoginWidget
+    try {
+      const { data } = await authApi.requestDeepLink()
+      const link = `https://t.me/${data.bot_username}?start=webauth_${data.token}`
+      setDeepLink(link)
+      setBotUsername(data.bot_username)
+      setStep('waiting')
+      setCountdown(data.expires_in)
+
+      // Countdown
+      countdownRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            stopPolling()
+            setStep('error')
+            setError('Ссылка истекла. Нажмите кнопку снова.')
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      // Poll every 2s
+      pollingRef.current = setInterval(() => {
+        pollToken(data.token)
+      }, 2000)
+    } catch {
+      setStep('error')
+      setError('Не удалось создать ссылку для входа')
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [stopPolling, pollToken])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,6 +102,12 @@ export default function LoginPage() {
     }
   }
 
+  const formatCountdown = (s: number) => {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `${m}:${String(sec).padStart(2, '0')}`
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
       <div className="w-full max-w-sm">
@@ -98,21 +118,79 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-          {/* Telegram Widget */}
-          <div className="flex flex-col items-center gap-3">
-            <div ref={widgetRef} className="min-h-[50px]" />
-            {!tgReady && !error && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
-                Загрузка виджета...
-              </div>
-            )}
-          </div>
+          {/* Telegram Deep Link */}
+          {step === 'idle' && (
+            <button
+              onClick={handleTelegramLogin}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 bg-[#229ED9] hover:bg-[#1A7FB5] text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.96 1.25-5.54 3.66-.52.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.98-1.73 6.64-2.87 7.96-3.44 3.8-1.6 4.59-1.88 5.1-1.89.11 0 .37.03.54.17.14.12.18.28.2.55-.01.06.01.24 0 .37z" />
+              </svg>
+              Войти через Telegram
+            </button>
+          )}
 
-          {error && (
-            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 text-sm text-red-400">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
+          {step === 'requesting' && (
+            <div className="flex items-center justify-center gap-2 py-2.5 text-sm text-gray-400">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Создание ссылки...
+            </div>
+          )}
+
+          {step === 'waiting' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 text-sm text-blue-400">
+                <ExternalLink className="w-4 h-4 shrink-0" />
+                <span>Нажмите кнопку ниже и подтвердите вход в Telegram</span>
+              </div>
+              <a
+                href={deepLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-[#229ED9] hover:bg-[#1A7FB5] text-white font-medium py-2.5 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.96 1.25-5.54 3.66-.52.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.74 3.98-1.73 6.64-2.87 7.96-3.44 3.8-1.6 4.59-1.88 5.1-1.89.11 0 .37.03.54.17.14.12.18.28.2.55-.01.06.01.24 0 .37z" />
+                </svg>
+                Открыть Telegram
+              </a>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Ожидание подтверждения...
+                {countdown > 0 && (
+                  <span className="ml-1 text-gray-600">{formatCountdown(countdown)}</span>
+                )}
+              </div>
+              <button
+                onClick={handleTelegramLogin}
+                className="w-full text-xs text-gray-500 hover:text-gray-400 transition-colors"
+              >
+                Получить новую ссылку
+              </button>
+            </div>
+          )}
+
+          {step === 'done' && (
+            <div className="flex items-center justify-center gap-2 py-2.5 text-sm text-green-400">
+              <CheckCircle className="w-4 h-4" />
+              Вход выполнен! Перенаправление...
+            </div>
+          )}
+
+          {step === 'error' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 text-sm text-red-400">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {error}
+              </div>
+              <button
+                onClick={handleTelegramLogin}
+                className="w-full flex items-center justify-center gap-2 bg-[#229ED9] hover:bg-[#1A7FB5] text-white font-medium py-2.5 rounded-lg transition-colors"
+              >
+                Попробовать снова
+              </button>
             </div>
           )}
 
@@ -143,7 +221,7 @@ export default function LoginPage() {
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
               required
             />
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && step !== 'error' && <p className="text-red-400 text-sm">{error}</p>}
             <button
               type="submit"
               disabled={isLoading}
