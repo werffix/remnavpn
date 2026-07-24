@@ -1,9 +1,13 @@
 import api from './client'
 
-export interface DeepLinkTokenResponse {
-  token: string
+export interface TelegramWidgetConfig {
   bot_username: string
-  expires_in: number
+  size: 'large' | 'medium' | 'small'
+  radius: number
+  userpic: boolean
+  request_access: boolean
+  oidc_enabled: boolean
+  oidc_client_id: string
 }
 
 export interface AuthResponse {
@@ -13,8 +17,15 @@ export interface AuthResponse {
 }
 
 export const authApi = {
+  getTelegramWidgetConfig: () =>
+    api.get<TelegramWidgetConfig>('/branding/telegram-widget'),
+  loginTelegramOidc: (idToken: string, referralCode?: string) =>
+    api.post<AuthResponse>('/auth/telegram/oidc', {
+      id_token: idToken,
+      ...(referralCode ? { referral_code: referralCode } : {}),
+    }),
   requestDeepLink: () =>
-    api.post<DeepLinkTokenResponse>('/auth/deeplink/request'),
+    api.post<{ token: string; bot_username: string; expires_in: number }>('/auth/deeplink/request'),
   pollDeepLink: (token: string, campaignSlug?: string) =>
     api.post<AuthResponse>('/auth/deeplink/poll', {
       token,
