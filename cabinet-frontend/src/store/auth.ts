@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { authApi } from '@/api/auth'
+import { authApi, TelegramWidgetData } from '@/api/auth'
 
 interface User {
   id: number
@@ -16,7 +16,7 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  loginTelegram: (initData: string) => Promise<void>
+  loginTelegramWidget: (data: TelegramWidgetData) => Promise<void>
   logout: () => Promise<void>
   fetchUser: () => Promise<void>
   setTokens: (access: string, refresh: string) => void
@@ -47,12 +47,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  loginTelegram: async (initData) => {
+  loginTelegramWidget: async (data) => {
     set({ isLoading: true })
     try {
-      const { data } = await authApi.loginTelegram(initData)
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('refresh_token', data.refresh_token)
+      const { data: auth } = await authApi.loginTelegramWidget(data)
+      localStorage.setItem('access_token', auth.access_token)
+      localStorage.setItem('refresh_token', auth.refresh_token)
       set({ isAuthenticated: true, isLoading: false })
       await useAuthStore.getState().fetchUser()
     } catch (e) {
