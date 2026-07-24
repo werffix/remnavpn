@@ -10,7 +10,7 @@ declare global {
       Login?: {
         init: (
           opts: {
-            bot_username: string
+            client_id: string
             request_access?: string[]
             size?: string
             radius?: number
@@ -105,7 +105,7 @@ export default function LoginPage() {
           if (window.Telegram?.Login) {
             window.Telegram.Login.init(
               {
-                bot_username: config.bot_username,
+                client_id: config.oidc_client_id,
                 request_access: ['write'],
                 size: config.size || 'large',
                 radius: config.radius || 8,
